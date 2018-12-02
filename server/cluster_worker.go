@@ -15,6 +15,7 @@ package server
 
 import (
 	"bytes"
+	"github.com/pingcap/pd/lab"
 
 	"github.com/gogo/protobuf/proto"
 	"github.com/pingcap/kvproto/pkg/metapb"
@@ -153,6 +154,7 @@ func (c *RaftCluster) checkSplitRegions(regions []*metapb.Region) error {
 	for i := 1; i < len(regions); i++ {
 		left := regions[i-1]
 		right := regions[i]
+		lab.AddRegionSplit(left, right)
 		if !bytes.Equal(left.GetEndKey(), right.GetStartKey()) {
 			return errors.New("invalid split region")
 		}
@@ -166,6 +168,7 @@ func (c *RaftCluster) checkSplitRegions(regions []*metapb.Region) error {
 func (c *RaftCluster) handleReportSplit(request *pdpb.ReportSplitRequest) (*pdpb.ReportSplitResponse, error) {
 	left := request.GetLeft()
 	right := request.GetRight()
+	lab.AddRegionSplit(left, right)
 
 	err := c.checkSplitRegion(left, right)
 	if err != nil {

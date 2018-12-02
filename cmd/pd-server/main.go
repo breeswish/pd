@@ -17,6 +17,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/pingcap/pd/lab"
 	"os"
 	"os/signal"
 	"syscall"
@@ -97,6 +98,7 @@ func main() {
 		cancel()
 	}()
 
+	lab.InitLab()
 	if err := svr.Run(ctx); err != nil {
 		log.Fatalf("run server failed: %v", fmt.Sprintf("%+v", err))
 	}
