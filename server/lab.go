@@ -19,7 +19,7 @@ var m map[uint64]int
 var mSize map[uint64]int64
 var mutex = &sync.Mutex{}
 var mutexSize = &sync.Mutex{}
-var cfg *Config
+var addr string = ""
 
 type PeerCreateEvent struct {
 	TiKVId   uint64 `json:"tikv_id"`
@@ -68,14 +68,14 @@ func (e Event) toString() string {
 }
 
 func pushEvent(e Event) {
-	if cfg == nil || len(cfg.LabAddress) == 0 {
+	if len(addr) == 0 {
 		return
 	}
 	data, err := json.Marshal(e)
 	if err != nil {
 		panic(err)
 	}
-	resp, err := http.Post(fmt.Sprintf("http://%s/event", cfg.LabAddress), "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(fmt.Sprintf("http://%s/event", addr), "application/json", bytes.NewBuffer(data))
 	defer resp.Body.Close()
 	if err != nil {
 		fmt.Println(err)
@@ -228,7 +228,8 @@ func runLabEventPusher() {
 	}
 }
 
-func InitLab(cfg *Config) {
+func InitLab(config *Config) {
+	addr = config.LabAddress
 	event = make(chan Event)
 	m = make(map[uint64]int)
 	mSize = make(map[uint64]int64)
