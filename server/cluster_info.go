@@ -25,7 +25,6 @@ import (
 	"github.com/pingcap/pd/server/namespace"
 	"github.com/pingcap/pd/server/schedule"
 	log "github.com/sirupsen/logrus"
-	"github.com/pingcap/pd/lab"
 )
 
 type clusterInfo struct {
@@ -466,8 +465,8 @@ func (c *clusterInfo) handleRegionHeartbeat(region *core.RegionInfo) error {
 	isWriteUpdate, writeItem := c.core.CheckWriteStatus(region)
 	isReadUpdate, readItem := c.core.CheckReadStatus(region)
 	c.RUnlock()
-	lab.RefreshSize(region, region.GetApproximateSize())
-	lab.AddPeerDirect(region)
+	RefreshSize(region, region.GetApproximateSize())
+	AddPeerDirect(region)
 
 	// Save to KV if meta is updated.
 	// Save to cache if meta or leader is updated, or contains any down/pending peer.
@@ -484,12 +483,12 @@ func (c *clusterInfo) handleRegionHeartbeat(region *core.RegionInfo) error {
 			return ErrRegionIsStale(region.GetMeta(), origin.GetMeta())
 		}
 		if r.GetVersion() > o.GetVersion() {
-			lab.AddPeerCreateEvent(origin, region)
+			AddPeerCreateEvent(origin, region)
 			log.Infof("[region %d] %s, Version changed from {%d} to {%d}", region.GetID(), core.DiffRegionKeyInfo(origin, region), o.GetVersion(), r.GetVersion())
 			saveKV, saveCache = true, true
 		}
 		if r.GetConfVer() > o.GetConfVer() {
-			lab.AddPeerCreateEvent(origin, region)
+			AddPeerCreateEvent(origin, region)
 			log.Infof("[region %d] %s, ConfVer changed from {%d} to {%d}", region.GetID(), core.DiffRegionPeersInfo(origin, region), o.GetConfVer(), r.GetConfVer())
 			saveKV, saveCache = true, true
 		}

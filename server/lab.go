@@ -1,18 +1,17 @@
-package lab
+package server
 
 import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/pingcap/kvproto/pkg/metapb"
-	"github.com/pingcap/pd/server/core"
-	"io/ioutil"
 	"net/http"
-	"os"
 	"reflect"
 	"sync"
 	"time"
+
+	"github.com/pingcap/kvproto/pkg/metapb"
+	"github.com/pingcap/pd/server/core"
 )
 
 var event chan Event
@@ -20,44 +19,43 @@ var m map[uint64]int
 var mSize map[uint64]int64
 var mutex = &sync.Mutex{}
 var mutexSize = &sync.Mutex{}
-
+var cfg *Config
 
 type PeerCreateEvent struct {
-	TiKVId  		uint64 		`json:"tikv_id"`
-	RegionId  		uint64 		`json:"region_id"`
-	PeerId			uint64 		`json:"peer_id"`
-	StartKey		string  	`json:"region_start_key"`
-	EndKey			string  	`json:"region_end_key"`
+	TiKVId   uint64 `json:"tikv_id"`
+	RegionId uint64 `json:"region_id"`
+	PeerId   uint64 `json:"peer_id"`
+	StartKey string `json:"region_start_key"`
+	EndKey   string `json:"region_end_key"`
 }
 
-
 type PeerDestroyEvent struct {
-	TiKVId  		uint64 		`json:"tikv_id"`
-	RegionId  		uint64 		`json:"region_id"`
-	PeerId			uint64 		`json:"peer_id"`
+	TiKVId   uint64 `json:"tikv_id"`
+	RegionId uint64 `json:"region_id"`
+	PeerId   uint64 `json:"peer_id"`
 }
 
 type RegionSizeChangeEvent struct {
-	TiKVId  		uint64 		`json:"tikv_id"`
-	RegionId  		uint64 		`json:"region_id"`
-	PeerId			uint64 		`json:"peer_id"`
-	NewSize			int64		`json:"new_size"`
+	TiKVId   uint64 `json:"tikv_id"`
+	RegionId uint64 `json:"region_id"`
+	PeerId   uint64 `json:"peer_id"`
+	NewSize  int64  `json:"new_size"`
 }
 
 type RegionSplitEvent struct {
-	TiKVId  		uint64 		`json:"tikv_id"`
-	LeftRegionId  	uint64 		`json:"left_region_id"`
-	RightRegionId  	uint64 		`json:"right_region_id"`
-	StartKey		string  	`json:"region_start_key"`
-	EndKey			string  	`json:"region_end_key"`
-	SplitKey		string		`json:"region_split_key"`
+	TiKVId        uint64 `json:"tikv_id"`
+	LeftRegionId  uint64 `json:"left_region_id"`
+	RightRegionId uint64 `json:"right_region_id"`
+	StartKey      string `json:"region_start_key"`
+	EndKey        string `json:"region_end_key"`
+	SplitKey      string `json:"region_split_key"`
 }
 
 type Event struct {
-	TS            int64  `json:"timestamp"`
-	EvId		  int	 `json:"eid"`
-	EventName     string `json:"event_name""`
-	Payload       interface{}  `json:"payload""`
+	TS        int64       `json:"timestamp"`
+	EvId      int         `json:"eid"`
+	EventName string      `json:"event_name""`
+	Payload   interface{} `json:"payload""`
 }
 
 func (e Event) toString() string {
@@ -70,50 +68,42 @@ func (e Event) toString() string {
 }
 
 func pushEvent(e Event) {
-	f, err := os.OpenFile("/tmp/pd.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	defer f.Close()
-	if err != nil {
-		panic(err)
+	if cfg == nil || len(cfg.LabAddress) == 0 {
+		return
 	}
 	data, err := json.Marshal(e)
 	if err != nil {
 		panic(err)
 	}
-	if _, err = f.WriteString(string(data)); err != nil {
-		panic(err)
-	}
-	resp, err := http.Post("http://192.168.198.207:12510/event", "application/json", bytes.NewBuffer(data))
+	resp, err := http.Post(fmt.Sprintf("http://%s/event", cfg.LabAddress), "application/json", bytes.NewBuffer(data))
 	defer resp.Body.Close()
 	if err != nil {
 		fmt.Println(err)
-	} else {
-		data, _ = ioutil.ReadAll(resp.Body)
-		f.WriteString(string(data) + "\n")
 	}
 }
 
 func AddPeerDestroyEvent(tikvId uint64, regionId uint64, peerId uint64) {
 	ts := time.Now().UnixNano() / 1000000
-	event <- Event {
+	event <- Event{
 		TS:        ts,
 		EventName: "TiKVPeerDestroy",
-		Payload:   &PeerDestroyEvent{
-			TiKVId: tikvId,
+		Payload: &PeerDestroyEvent{
+			TiKVId:   tikvId,
 			RegionId: regionId,
-			PeerId: peerId,
+			PeerId:   peerId,
 		},
 	}
 }
 
 func AddRegionSizeChange(tikvId uint64, peerId uint64, regionId uint64, newSize int64) {
 	ts := time.Now().UnixNano() / 1000000
-	event <- Event {
+	event <- Event{
 		TS:        ts,
 		EventName: "TiKVRegionSizeChange",
-		Payload:   &RegionSizeChangeEvent{
-			TiKVId: tikvId,
+		Payload: &RegionSizeChangeEvent{
+			TiKVId:   tikvId,
 			RegionId: regionId,
-			NewSize: newSize,
+			NewSize:  newSize,
 		},
 	}
 }
@@ -128,20 +118,19 @@ func AddRegionSplit(left *metapb.Region, right *metapb.Region) {
 
 func addRegionSplit(storeId uint64, leftRegionId uint64, rightRegionId uint64, startKey []byte, endKey []byte, splitKey []byte) {
 	ts := time.Now().UnixNano() / 1000000
-	event <- Event {
+	event <- Event{
 		TS:        ts,
 		EventName: "TiKVRegionSplit",
-		Payload:   &RegionSplitEvent{
-			TiKVId: storeId,
-			LeftRegionId: leftRegionId,
+		Payload: &RegionSplitEvent{
+			TiKVId:        storeId,
+			LeftRegionId:  leftRegionId,
 			RightRegionId: rightRegionId,
-			StartKey: hex.EncodeToString(startKey),
-			EndKey: hex.EncodeToString(endKey),
-			SplitKey: hex.EncodeToString(splitKey),
+			StartKey:      hex.EncodeToString(startKey),
+			EndKey:        hex.EncodeToString(endKey),
+			SplitKey:      hex.EncodeToString(splitKey),
 		},
 	}
 }
-
 
 func AddPeerCreateEvent(origin *core.RegionInfo, other *core.RegionInfo) {
 	for _, a := range origin.GetPeers() {
@@ -195,18 +184,17 @@ func addPeerCreateEvent(tikvId uint64, regionId uint64, peerId uint64, startKey 
 		return
 	}
 	m[peerId] = 0
-	event <- Event {
+	event <- Event{
 		TS:        ts,
 		EventName: "TiKVPeerCreate",
-		Payload:   &PeerCreateEvent{
-			TiKVId: tikvId,
+		Payload: &PeerCreateEvent{
+			TiKVId:   tikvId,
 			RegionId: regionId,
-			PeerId: peerId,
+			PeerId:   peerId,
 			StartKey: hex.EncodeToString(startKey),
-			EndKey: hex.EncodeToString(endKey)},
+			EndKey:   hex.EncodeToString(endKey)},
 	}
 }
-
 
 func RefreshSize(origin *core.RegionInfo, size int64) {
 	mutexSize.Lock()
@@ -223,31 +211,26 @@ func RefreshSize(origin *core.RegionInfo, size int64) {
 }
 
 type Peer struct {
-	PeerId 	uint64
+	PeerId  uint64
 	StoreId uint64
 }
 
 type PeerDiffResult struct {
-	Added  	 []*Peer
-	Removed  []*Peer
+	Added   []*Peer
+	Removed []*Peer
 }
-
 
 func runLabEventPusher() {
 	for {
 		var e Event
-		e = <- event
+		e = <-event
 		pushEvent(e)
-		time.Sleep(1000)
 	}
 }
 
-func InitLab() {
+func InitLab(cfg *Config) {
 	event = make(chan Event)
 	m = make(map[uint64]int)
 	mSize = make(map[uint64]int64)
 	go runLabEventPusher()
 }
-
-
-

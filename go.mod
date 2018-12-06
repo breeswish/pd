@@ -6,6 +6,7 @@ require (
 	github.com/chzyer/logex v1.1.10 // indirect
 	github.com/chzyer/readline v0.0.0-20171208011716-f6d7a1f6fbf3
 	github.com/chzyer/test v0.0.0-20180213035817-a1ea475d72b1 // indirect
+	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
 	github.com/coreos/bbolt v1.3.1-coreos.6 // indirect
 	github.com/coreos/etcd v0.0.0-20180530235116-2b3aa7e1d49d
 	github.com/coreos/go-semver v0.2.0
@@ -29,6 +30,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.4.1 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jonboulle/clockwork v0.1.0 // indirect
+	github.com/juju/errors v0.0.0-20181118221551-089d3ea4e4d5 // indirect
 	github.com/mattn/go-shellwords v1.0.3
 	github.com/matttproud/golang_protobuf_extensions v1.0.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20151014174947-eeaced052adb
@@ -39,6 +41,7 @@ require (
 	github.com/pingcap/errors v0.10.1 // indirect
 	github.com/pingcap/gofail v0.0.0-20181115114620-e47081505b9c
 	github.com/pingcap/kvproto v0.0.0-20181123124450-d48563486f61
+	github.com/pingcap/tidb v2.0.9+incompatible
 	github.com/pkg/errors v0.8.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v0.8.0
@@ -52,6 +55,8 @@ require (
 	github.com/stretchr/testify v1.2.2 // indirect
 	github.com/syndtr/goleveldb v0.0.0-20180815032940-ae2bd5eed72d
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20171017195756-830351dc03c6 // indirect
+	github.com/uber/jaeger-client-go v2.15.0+incompatible // indirect
+	github.com/uber/jaeger-lib v1.5.0 // indirect
 	github.com/ugorji/go v1.1.1 // indirect
 	github.com/unrolled/render v0.0.0-20171102162132-65450fb6b2d3
 	github.com/urfave/negroni v0.3.0

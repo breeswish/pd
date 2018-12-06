@@ -40,6 +40,7 @@ type Config struct {
 
 	Version bool `json:"-"`
 
+	LabAddress          string `toml:"lab-address" json:"lab-address"`
 	ClientUrls          string `toml:"client-urls" json:"client-urls"`
 	PeerUrls            string `toml:"peer-urls" json:"peer-urls"`
 	AdvertiseClientUrls string `toml:"advertise-client-urls" json:"advertise-client-urls"`

@@ -3,6 +3,9 @@
 name = "pd"
 data-dir = "default.pd"
 
+# lab push address. e.g. 127.0.0.1:12510. empty means disable lab push.
+lab-address = ""
+
 client-urls = "http://127.0.0.1:2379"
 # if not set, use ${client-urls}
 advertise-client-urls = ""

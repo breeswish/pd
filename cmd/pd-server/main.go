@@ -17,7 +17,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/pingcap/pd/lab"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,13 +26,10 @@ import (
 	"github.com/pingcap/pd/pkg/metricutil"
 	"github.com/pingcap/pd/server"
 	"github.com/pingcap/pd/server/api"
-	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
-
-	// Register schedulers.
-	_ "github.com/pingcap/pd/server/schedulers"
-	// Register namespace classifiers.
+	_ "github.com/pingcap/pd/server/schedulers" // Register namespace classifiers.
 	_ "github.com/pingcap/pd/table"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus" // Register schedulers.
 )
 
 func main() {
@@ -98,7 +94,7 @@ func main() {
 		cancel()
 	}()
 
-	lab.InitLab()
+	server.InitLab(cfg)
 	if err := svr.Run(ctx); err != nil {
 		log.Fatalf("run server failed: %v", fmt.Sprintf("%+v", err))
 	}
