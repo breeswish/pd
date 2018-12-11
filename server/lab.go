@@ -12,6 +12,7 @@ import (
 
 	"github.com/pingcap/kvproto/pkg/metapb"
 	"github.com/pingcap/pd/server/core"
+	log "github.com/sirupsen/logrus"
 )
 
 var event chan Event
@@ -230,6 +231,7 @@ func runLabEventPusher() {
 
 func InitLab(config *Config) {
 	addr = config.LabAddress
+	log.Infof("Lab address: %s", addr)
 	event = make(chan Event)
 	m = make(map[uint64]int)
 	mSize = make(map[uint64]int64)
