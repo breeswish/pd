@@ -50,3 +50,5 @@ require (
 )
 
 replace github.com/sirupsen/logrus => github.com/sirupsen/logrus v1.2.0
+
+replace github.com/pingcap-incubator/tidb-dashboard => github.com/breeswish/tidb-dashboard v0.0.0-20201229093918-4fd82c5e07c5
